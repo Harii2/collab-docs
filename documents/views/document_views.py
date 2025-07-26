@@ -8,7 +8,7 @@ from documents.serializers import (
     UpdateDocumentSerializer
 )
 from documents.dtos import CreateDocumentDTO, UpdateDocumentDTO, DocumentListFilterDTO
-from interactors.documents.document_interactor import DocumentCrudInteractor
+from documents.interactors.documents.document_interactor import DocumentCrudInteractor
 
 
 # Initialize interactor (it handles its own storage dependencies internally)

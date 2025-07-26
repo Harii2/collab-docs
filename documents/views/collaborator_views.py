@@ -8,7 +8,7 @@ from documents.serializers import (
     UpdateCollaboratorSerializer
 )
 from documents.dtos import AddCollaboratorDTO, UpdateCollaboratorDTO
-from interactors.collaborators.collaborator_interactor import CollaboratorCrudInteractor
+from documents.interactors.collaborators.collaborator_interactor import CollaboratorCrudInteractor
 
 
 # Initialize interactor (it handles its own storage dependencies internally)

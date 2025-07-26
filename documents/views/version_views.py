@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from documents.serializers import DocumentVersionSerializer
-from interactors.versions.version_interactor import VersionCrudInteractor
+from documents.interactors.versions.version_interactor import VersionCrudInteractor
 
 
 # Initialize interactor (it handles its own storage dependencies internally)
