@@ -16,17 +16,23 @@ class VersionCrudInteractor:
         collaborator_storage: CollaboratorStorageInterface = None,
         version_storage: DocumentVersionStorageInterface = None
     ):
-        # Initialize storage dependencies internally if not provided
-        self.document_storage = document_storage or DocumentStorage()
-        self.collaborator_storage = collaborator_storage or CollaboratorStorage()
-        self.version_storage = version_storage or DocumentVersionStorage()
+        # Initialize storage dependencies at class initialization time
+        self.document_storage = document_storage if document_storage is not None else DocumentStorage()
+        self.collaborator_storage = collaborator_storage if collaborator_storage is not None else CollaboratorStorage()
+        self.version_storage = version_storage if version_storage is not None else DocumentVersionStorage()
     
     def get_document_versions(self, document_id: int, requesting_user_id: int) -> List[DocumentVersionDTO]:
         document = self.document_storage.get_document_by_id(document_id)
         if not document:
             return []
         
-        if not self._can_view_document(document, requesting_user_id):
+        # ✅ Inline view permission check to avoid additional storage call
+        if document.owner_id == requesting_user_id or document.is_public:
+            return self.version_storage.get_document_versions(document_id)
+        
+        # Only check collaborator if not owner and not public
+        collaborator = self.collaborator_storage.get_collaborator(document.id, requesting_user_id)
+        if not collaborator:
             return []
         
         return self.version_storage.get_document_versions(document_id)
@@ -36,7 +42,13 @@ class VersionCrudInteractor:
         if not document:
             return None
         
-        if not self._can_view_document(document, requesting_user_id):
+        # ✅ Inline view permission check to avoid additional storage call
+        if document.owner_id == requesting_user_id or document.is_public:
+            return self.version_storage.get_version_by_number(document_id, version_number)
+        
+        # Only check collaborator if not owner and not public
+        collaborator = self.collaborator_storage.get_collaborator(document.id, requesting_user_id)
+        if not collaborator:
             return None
         
         return self.version_storage.get_version_by_number(document_id, version_number)

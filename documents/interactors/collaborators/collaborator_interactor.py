@@ -17,9 +17,9 @@ class CollaboratorCrudInteractor:
         document_storage: DocumentStorageInterface = None,
         collaborator_storage: CollaboratorStorageInterface = None
     ):
-        # Initialize storage dependencies internally if not provided
-        self.document_storage = document_storage or DocumentStorage()
-        self.collaborator_storage = collaborator_storage or CollaboratorStorage()
+        # Initialize storage dependencies at class initialization time
+        self.document_storage = document_storage if document_storage is not None else DocumentStorage()
+        self.collaborator_storage = collaborator_storage if collaborator_storage is not None else CollaboratorStorage()
     
     def add_collaborator(self, dto: AddCollaboratorDTO, requesting_user_id: int) -> Optional[CollaboratorDTO]:
         document = self.document_storage.get_document_by_id(dto.document_id)
@@ -56,15 +56,21 @@ class CollaboratorCrudInteractor:
         return self.collaborator_storage.remove_collaborator(document_id, user_id)
     
     def get_document_collaborators(self, document_id: int, requesting_user_id: int) -> List[CollaboratorDTO]:
+        # ✅ Each storage interacts with only one model - cross-model logic in interactor
         document = self.document_storage.get_document_by_id(document_id)
         if not document:
             return []
         
-        if document.owner_id != requesting_user_id:
-            collaborator = self.collaborator_storage.get_collaborator(document_id, requesting_user_id)
-            if not collaborator:
-                return []
+        # If user is owner, they can view all collaborators
+        if document.owner_id == requesting_user_id:
+            return self.collaborator_storage.get_document_collaborators(document_id)
         
+        # Check if user is a collaborator with permission to view
+        user_collaboration = self.collaborator_storage.get_collaborator(document_id, requesting_user_id)
+        if not user_collaboration:
+            return []
+        
+        # User has permission, return all collaborators
         return self.collaborator_storage.get_document_collaborators(document_id)
     
     def get_user_collaborations(self, user_id: int) -> List[CollaboratorDTO]:

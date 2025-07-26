@@ -34,6 +34,11 @@ class DocumentStorageInterface(ABC):
         pass
     
     @abstractmethod
+    def get_documents_by_ids(self, document_ids: List[int]) -> List[DocumentDTO]:
+        """Bulk operation to get multiple documents by IDs to avoid N+1 queries"""
+        pass
+    
+    @abstractmethod
     def get_documents_by_owner(self, owner_id: int) -> List[DocumentDTO]:
         pass
 
@@ -81,4 +86,9 @@ class DocumentVersionStorageInterface(ABC):
     
     @abstractmethod
     def get_latest_version_number(self, document_id: int) -> int:
+        pass
+    
+    @abstractmethod
+    def create_version_auto_increment(self, document_id: int, title: str, content: str, changed_by_user_id: int, change_summary: str = "") -> DocumentVersionDTO:
+        """Create version with auto-incremented version number to avoid extra storage call"""
         pass

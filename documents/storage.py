@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from .dtos import (
     DocumentDTO,
@@ -57,7 +57,7 @@ class DocumentStorage(DocumentStorageInterface):
             return False
     
     def list_documents(self, filter_dto: DocumentListFilterDTO) -> List[DocumentDTO]:
-        queryset = Document.objects.all()
+        queryset = Document.objects.cached().all()
         
         if filter_dto.owner_id:
             queryset = queryset.filter(owner_id=filter_dto.owner_id)
@@ -66,8 +66,16 @@ class DocumentStorage(DocumentStorageInterface):
         if filter_dto.is_public is not None:
             queryset = queryset.filter(is_public=filter_dto.is_public)
         
-        documents = list(queryset[filter_dto.offset:filter_dto.offset + filter_dto.limit])
-        return self._bulk_model_to_dto(documents)
+        documents = queryset[filter_dto.offset:filter_dto.offset + filter_dto.limit]
+        return [self._to_document_dto(doc) for doc in documents]
+    
+    def get_documents_by_ids(self, document_ids: List[int]) -> List[DocumentDTO]:
+        """Bulk operation to get multiple documents by IDs to avoid N+1 queries"""
+        if not document_ids:
+            return []
+        
+        documents = Document.objects.cached().filter(id__in=document_ids)
+        return [self._to_document_dto(doc) for doc in documents]
     
     def get_documents_by_owner(self, owner_id: int) -> List[DocumentDTO]:
         documents = Document.objects.filter(owner_id=owner_id)
@@ -132,14 +140,14 @@ class CollaboratorStorage(CollaboratorStorageInterface):
             return False
     
     def get_user_collaborations(self, user_id: int) -> List[CollaboratorDTO]:
-        collaborators = Collaborator.objects.filter(user_id=user_id)
-        return self._bulk_model_to_dto(collaborators)
+        collaborators = Collaborator.objects.cached().filter(user_id=user_id)
+        return [self._to_collaborator_dto(collab) for collab in collaborators]
     
     @staticmethod
     def _model_to_dto(collaborator: Collaborator) -> CollaboratorDTO:
         return CollaboratorDTO(
             id=collaborator.pk,
-            document_id=collaborator.document_id,
+            document_id= collaborator.document_id,
             user_id=collaborator.user_id,
             permission=collaborator.permission,
             added_by_user_id=collaborator.added_by_user_id,
@@ -180,9 +188,26 @@ class DocumentVersionStorage(DocumentVersionStorageInterface):
             return None
     
     def get_latest_version_number(self, document_id: int) -> int:
-        versions = DocumentVersion.objects.filter(document_id=document_id).order_by('-version_number')
-        latest = versions.first()
-        return latest.version_number if latest else 0
+        latest_version = DocumentVersion.objects.cached().filter(document_id=document_id).order_by('-version_number').first()
+        return latest_version.version_number if latest_version else 0
+    
+    def create_version_auto_increment(self, document_id: int, title: str, content: str, changed_by_user_id: int, change_summary: str = "") -> DocumentVersionDTO:
+        """Create version with auto-incremented version number to avoid extra storage call"""
+        # Get latest version number and increment in single operation
+        latest_version_number = self.get_latest_version_number(document_id)
+        next_version_number = latest_version_number + 1
+        
+        # Create new version with auto-incremented number
+        version = DocumentVersion.objects.create(
+            document_id=document_id,
+            version_number=next_version_number,
+            title=title,
+            content=content,
+            changed_by_user_id=changed_by_user_id,
+            change_summary=change_summary
+        )
+        
+        return self._model_to_dto(version)
     
     @staticmethod
     def _model_to_dto(version: DocumentVersion) -> DocumentVersionDTO:
