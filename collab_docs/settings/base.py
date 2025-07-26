@@ -39,12 +39,23 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 ]
 
-CUSTOM_APPS = [
-    "users"
+THIRD_PARTY_APPS = [
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'corsheaders',
+    'cacheops',
+    'channels',
 ]
-INSTALLED_APPS += CUSTOM_APPS
+
+CUSTOM_APPS = [
+    'users',
+    'documents',
+]
+
+INSTALLED_APPS += THIRD_PARTY_APPS + CUSTOM_APPS
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -135,4 +146,92 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+}
+
+# JWT Configuration
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+    'JTI_CLAIM': 'jti',
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+}
+
+# CORS Configuration
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_ALL_ORIGINS = DEBUG  # Only in development
+
+# Cacheops Configuration
+CACHEOPS_REDIS = {
+    'host': 'localhost',
+    'port': 6379,
+    'db': 1,
+    'socket_timeout': 3,
+}
+
+CACHEOPS = {
+    'documents.document': {
+        'ops': ('get', 'filter', 'exists'),
+        'timeout': 7200,  # 2 hours
+    },
+    'documents.collaborator': {
+        'ops': ('get', 'filter', 'exists'),
+        'timeout': 7200,  # 2 hours
+    },
+    'documents.documentversion': {
+        'ops': ('get', 'filter', 'exists'),
+        'timeout': 7200,  # 2 hours
+    },
+    'users.customuser': {
+        'ops': ('get', 'exists'),
+        'timeout': 7200,  # 2 hours
+    },
+    'auth.group': {
+        'ops': ('get', 'filter'),
+        'timeout': 86400,  # 24 hours
+    },
+    'auth.permission': {
+        'ops': ('get', 'filter'),
+        'timeout': 86400,  # 24 hours
+    },
+}
+
+CACHEOPS_DEGRADE_ON_FAILURE = True
+CACHEOPS_DEFAULTS = {
+    'timeout': 7200,
+    'ops': ('get', 'filter', 'exists'),
+}
+CACHEOPS_PREFIX = 'collab_docs'
+CACHEOPS_ENABLED = True
+
+# Channels Configuration (for WebSocket support)
+ASGI_APPLICATION = 'collab_docs.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
 }
