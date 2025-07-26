@@ -9,12 +9,6 @@ class CustomUser(AbstractUser):
     """
     email = models.EmailField(_('email address'), unique=True)
     bio = models.TextField(max_length=500, blank=True, help_text="Tell us about yourself")
-    profile_picture = models.ImageField(
-        upload_to='profile_pics/', 
-        null=True, 
-        blank=True,
-        help_text="Upload your profile picture"
-    )
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']

@@ -44,7 +44,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'id', 'username', 'email', 'first_name', 'last_name', 
-            'bio', 'profile_picture', 'full_name', 'date_joined'
+            'bio', 'full_name', 'date_joined'
         )
         read_only_fields = ('id', 'date_joined')
     
@@ -111,18 +111,4 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'bio', 'profile_picture')
-    
-    def validate_profile_picture(self, value):
-        """Validate profile picture file"""
-        if value:
-            # Check file size (max 5MB)
-            if value.size > 5 * 1024 * 1024:
-                raise serializers.ValidationError("Profile picture must be smaller than 5MB.")
-            
-            # Check file type
-            allowed_types = ['image/jpeg', 'image/png', 'image/gif']
-            if value.content_type not in allowed_types:
-                raise serializers.ValidationError("Only JPEG, PNG and GIF images are allowed.")
-        
-        return value
+        fields = ('first_name', 'last_name', 'bio')
