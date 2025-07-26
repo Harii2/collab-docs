@@ -3,19 +3,16 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from documents.serializers import (
-    CollaboratorSerializer,
-    AddCollaboratorSerializer,
+    CollaboratorSerializer, 
+    AddCollaboratorSerializer, 
     UpdateCollaboratorSerializer
 )
-from documents.dtos import AddCollaboratorDTO
-from interactors.documents.collaborator_crud_interactor import CollaboratorCrudInteractor
-from documents.storage import DocumentStorage, CollaboratorStorage
+from documents.dtos import AddCollaboratorDTO, UpdateCollaboratorDTO
+from interactors.collaborators.collaborator_interactor import CollaboratorCrudInteractor
 
 
-document_storage = DocumentStorage()
-collaborator_storage = CollaboratorStorage()
-
-collaborator_interactor = CollaboratorCrudInteractor(document_storage, collaborator_storage)
+# Initialize interactor (it handles its own storage dependencies internally)
+collaborator_interactor = CollaboratorCrudInteractor()
 
 
 @api_view(['POST'])

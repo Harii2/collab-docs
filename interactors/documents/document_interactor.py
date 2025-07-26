@@ -1,5 +1,6 @@
 from typing import List, Optional
 from documents.storage_interface import DocumentStorageInterface, CollaboratorStorageInterface, DocumentVersionStorageInterface
+from documents.storage import DocumentStorage, CollaboratorStorage, DocumentVersionStorage
 from documents.dtos import (
     DocumentDTO, 
     CreateDocumentDTO,
@@ -13,13 +14,14 @@ class DocumentCrudInteractor:
     
     def __init__(
         self, 
-        document_storage: DocumentStorageInterface,
-        collaborator_storage: CollaboratorStorageInterface,
-        version_storage: DocumentVersionStorageInterface
+        document_storage: DocumentStorageInterface = None,
+        collaborator_storage: CollaboratorStorageInterface = None,
+        version_storage: DocumentVersionStorageInterface = None
     ):
-        self.document_storage = document_storage
-        self.collaborator_storage = collaborator_storage
-        self.version_storage = version_storage
+        # Initialize storage dependencies internally if not provided
+        self.document_storage = document_storage or DocumentStorage()
+        self.collaborator_storage = collaborator_storage or CollaboratorStorage()
+        self.version_storage = version_storage or DocumentVersionStorage()
     
     def create_document(self, dto: CreateDocumentDTO) -> DocumentDTO:
         return self.document_storage.create_document(dto)

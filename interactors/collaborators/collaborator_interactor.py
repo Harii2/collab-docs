@@ -1,9 +1,11 @@
 from typing import List, Optional
 from documents.storage_interface import DocumentStorageInterface, CollaboratorStorageInterface
+from documents.storage import DocumentStorage, CollaboratorStorage
 from documents.dtos import (
     DocumentDTO, 
     CollaboratorDTO,
-    AddCollaboratorDTO
+    AddCollaboratorDTO,
+    UpdateCollaboratorDTO
 )
 from documents.enums import PermissionType
 
@@ -12,11 +14,12 @@ class CollaboratorCrudInteractor:
     
     def __init__(
         self, 
-        document_storage: DocumentStorageInterface,
-        collaborator_storage: CollaboratorStorageInterface
+        document_storage: DocumentStorageInterface = None,
+        collaborator_storage: CollaboratorStorageInterface = None
     ):
-        self.document_storage = document_storage
-        self.collaborator_storage = collaborator_storage
+        # Initialize storage dependencies internally if not provided
+        self.document_storage = document_storage or DocumentStorage()
+        self.collaborator_storage = collaborator_storage or CollaboratorStorage()
     
     def add_collaborator(self, dto: AddCollaboratorDTO, requesting_user_id: int) -> Optional[CollaboratorDTO]:
         document = self.document_storage.get_document_by_id(dto.document_id)

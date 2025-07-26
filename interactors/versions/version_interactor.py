@@ -1,5 +1,6 @@
 from typing import List, Optional
 from documents.storage_interface import DocumentStorageInterface, CollaboratorStorageInterface, DocumentVersionStorageInterface
+from documents.storage import DocumentStorage, CollaboratorStorage, DocumentVersionStorage
 from documents.dtos import (
     DocumentDTO, 
     DocumentVersionDTO
@@ -11,13 +12,14 @@ class VersionCrudInteractor:
     
     def __init__(
         self, 
-        document_storage: DocumentStorageInterface,
-        collaborator_storage: CollaboratorStorageInterface,
-        version_storage: DocumentVersionStorageInterface
+        document_storage: DocumentStorageInterface = None,
+        collaborator_storage: CollaboratorStorageInterface = None,
+        version_storage: DocumentVersionStorageInterface = None
     ):
-        self.document_storage = document_storage
-        self.collaborator_storage = collaborator_storage
-        self.version_storage = version_storage
+        # Initialize storage dependencies internally if not provided
+        self.document_storage = document_storage or DocumentStorage()
+        self.collaborator_storage = collaborator_storage or CollaboratorStorage()
+        self.version_storage = version_storage or DocumentVersionStorage()
     
     def get_document_versions(self, document_id: int, requesting_user_id: int) -> List[DocumentVersionDTO]:
         document = self.document_storage.get_document_by_id(document_id)

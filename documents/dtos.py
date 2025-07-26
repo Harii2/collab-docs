@@ -66,6 +66,12 @@ class AddCollaboratorDTO:
 
 
 @dataclass
+class UpdateCollaboratorDTO:
+    id: int
+    permission: Optional[str] = None
+
+
+@dataclass
 class DocumentListFilterDTO:
     owner_id: Optional[int] = None
     user_id: Optional[int] = None

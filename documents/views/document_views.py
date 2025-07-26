@@ -8,15 +8,11 @@ from documents.serializers import (
     UpdateDocumentSerializer
 )
 from documents.dtos import CreateDocumentDTO, UpdateDocumentDTO, DocumentListFilterDTO
-from interactors.documents.document_crud_interactor import DocumentCrudInteractor
-from documents.storage import DocumentStorage, CollaboratorStorage, DocumentVersionStorage
+from interactors.documents.document_interactor import DocumentCrudInteractor
 
 
-document_storage = DocumentStorage()
-collaborator_storage = CollaboratorStorage()
-version_storage = DocumentVersionStorage()
-
-document_interactor = DocumentCrudInteractor(document_storage, collaborator_storage, version_storage)
+# Initialize interactor (it handles its own storage dependencies internally)
+document_interactor = DocumentCrudInteractor()
 
 
 @api_view(['POST'])
