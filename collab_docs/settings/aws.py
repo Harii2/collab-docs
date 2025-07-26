@@ -3,7 +3,6 @@ AWS S3 Configuration for Django
 Add these settings to your main base.py file or import them
 """
 import os
-from django.conf import settings
 
 # AWS S3 Configuration
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', '')

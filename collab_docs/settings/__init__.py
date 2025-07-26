@@ -1,3 +1,3 @@
 
-from aws_settings import *
-from base import *
+from .aws import *
+from .base import *
